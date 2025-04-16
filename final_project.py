@@ -1,6 +1,6 @@
 # SI 206 Final Project
 # Team name:
-#   - TBD
+#   - DOJE
 # Team members:
 #   - Jack Bernard (jackber@umich.edu - UMID 43241772)
 #   - Oleg Korobkov (olegko@umich.edu - UMID 58329022)
@@ -95,6 +95,7 @@ class polygon():
         print(aggs)
 
         new_aggs_dict = {}
+        
         for a in aggs:
             timestamp_ms = a.timestamp
             timestamp_sec = timestamp_ms / 1000
@@ -113,22 +114,6 @@ class polygon():
             "otc": a.otc,
             }
             
-
-        # aggs_dict = [
-        #     {
-        #     "open": a.open,
-        #     "high": a.high,
-        #     "low": a.low,
-        #     "close": a.close,
-        #     "volume": a.volume,
-        #     "vwap": a.vwap,
-        #     "timestamp": a.timestamp,
-        #     "transactions": a.transactions,
-        #     "otc": a.otc,
-        #     }
-        #     for a in aggs
-        # ]
-        # print(type(aggs_dict[0]))
         with open(f"stocks_{date_start}_to_{date_end}.json", "w") as json_file:
             json.dump(new_aggs_dict, json_file, indent=4)
         return
@@ -234,7 +219,7 @@ def add_posts_to_table(data, cur, conn):
     Data = List of dictionaries with market data  
     '''
 
-    for i in range(len(data)):
+    for i in data.items():
 
         cur.execute(
             "INSERT OR IGNORE INTO Market (id, timestamp, open, close, high, low) VALUES (?,?,?,?,?,?)", (i,
