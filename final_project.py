@@ -2,7 +2,7 @@
 # Team name:
 #   - TBD
 # Team members:
-#   - Jack Bernard 
+#   - Jack Bernard (jackber@umich.edu - UMID 43241772)
 #   - Oleg Korobkov
 #   - Danielle Schulz (dfaria@umich.edu - UMID63218489)
 
