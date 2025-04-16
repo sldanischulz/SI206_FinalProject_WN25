@@ -13,7 +13,7 @@ import requests
 import json
 import sqlite3
 from truthbrush.api import Api
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import json
 from polygon import RESTClient
 from datetime import datetime
@@ -69,7 +69,6 @@ class polygon():
     """Initializes the Polygon API client with the API key."""
     def __init__(self):
         # Read the API key from a file
-        # Change the path to the location of your apikey.txt file
         path = os.path.dirname(os.path.abspath(__file__))
         full_path = path + r'\api_key.txt'
         with open(full_path, 'r') as file:
@@ -116,14 +115,16 @@ class polygon():
             "otc": a.otc,
             }
             
-        with open(f"stocks_{date_start}_to_{date_end}.json", "w") as json_file:
+        with open(f"stocks_{str(date_start)[0:10]}_to_{str(date_end)[0:10]}.json", "w") as json_file:
             json.dump(new_aggs_dict, json_file, indent=4)
         return
-
+offset = timezone(timedelta(hours=2))
+dt_start = datetime(2025, 3, 31, tzinfo=offset)
+dt_end = datetime(2025, 4, 4, tzinfo=offset)
 # truth_user_lookup(Api(), "realdonaldtrump")
-# truth_pull_posts(Api(), "realdonaldtrump", "2025-03-31")
+truth_pull_posts(Api(), "realdonaldtrump", dt_start)
 p = polygon()
-p.get_stonks("2025-03-31", "2025-04-04")
+p.get_stonks(dt_start, dt_end)
 
 def get_json_content(filename):
 

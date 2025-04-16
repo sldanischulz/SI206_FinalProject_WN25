@@ -42,16 +42,5 @@
         "timestamp": 1743652800000,
         "transactions": 1807951,
         "otc": null
-    },
-    "2025-04-04 04:00:00+00:00": {
-        "open": 255.38,
-        "high": 261,
-        "low": 236,
-        "close": 239.43,
-        "volume": 181206728.0,
-        "vwap": 244.8183,
-        "timestamp": 1743739200000,
-        "transactions": 2734610,
-        "otc": null
     }
 }
