@@ -3,8 +3,8 @@
 #   - TBD
 # Team members:
 #   - Jack Bernard (jackber@umich.edu - UMID 43241772)
-#   - Oleg Korobkov
-#   - Danielle Schulz (dfaria@umich.edu - UMID63218489)
+#   - Oleg Korobkov (olegko@umich.edu - UMID 58329022)
+#   - Danielle Schulz (dfaria@umich.edu - UMID 63218489)
 
 from bs4 import BeautifulSoup
 import re
@@ -16,6 +16,7 @@ from truthbrush.api import Api
 from datetime import datetime, timezone
 import json
 from polygon import RESTClient
+from datetime import datetime
 
 '''
 Abstract:
@@ -44,8 +45,9 @@ Step by step: (this is for me to check myself and see if I understand what's up)
     6. Write up the analysis and conclusions
     7. Boot
     8. Rally
-
 '''
+
+# Truth Social API Request
 def truth_user_lookup(api, handle):
     """Pulls a user's basic information from Truthsocial and stores it in a .json"""
 
@@ -62,12 +64,17 @@ def truth_pull_posts(api, handle, start_date):
         json.dump(partial_pull, json_file, indent=4)
     return partial_pull
 
+# Historical Stock Market Data API Request
 class polygon():
+    """Initializes the Polygon API client with the API key."""
     def __init__(self):
+        # Read the API key from a file
+        # Change the path to the location of your apikey.txt file
         with open(r'c:\Users\jackb\Documents\School\YEAR2\Winter\SI206\Project\Final Proj\apikey.txt', 'r') as file:
             self.key = file.read().strip()
         pass
     def get_stonks(self, date_start, date_end):
+        """Pulls historical stock market data from Polygon API and stores it in a .json file."""
         
         client = RESTClient(self.key)
 
@@ -86,8 +93,15 @@ class polygon():
             aggs.append(a)
 
         print(aggs)
-        aggs_dict = [
-            {
+
+        new_aggs_dict = {}
+        for a in aggs:
+            timestamp_ms = a.timestamp
+            timestamp_sec = timestamp_ms / 1000
+
+            readable_date = datetime.fromtimestamp(timestamp_sec, tz=timezone.utc)
+            #print("REAAAAAD", readable_date)
+            new_aggs_dict[str(readable_date)] = {
             "open": a.open,
             "high": a.high,
             "low": a.low,
@@ -98,17 +112,31 @@ class polygon():
             "transactions": a.transactions,
             "otc": a.otc,
             }
-            for a in aggs
-        ]
+            
 
-        print(aggs_dict)
-        return aggs_dict
+        # aggs_dict = [
+        #     {
+        #     "open": a.open,
+        #     "high": a.high,
+        #     "low": a.low,
+        #     "close": a.close,
+        #     "volume": a.volume,
+        #     "vwap": a.vwap,
+        #     "timestamp": a.timestamp,
+        #     "transactions": a.transactions,
+        #     "otc": a.otc,
+        #     }
+        #     for a in aggs
+        # ]
+        # print(type(aggs_dict[0]))
+        with open(f"stocks_{date_start}_to_{date_end}.json", "w") as json_file:
+            json.dump(new_aggs_dict, json_file, indent=4)
         return
 
 # truth_user_lookup(Api(), "realdonaldtrump")
-truth_pull_posts(Api(), "realdonaldtrump", "2025-03-31")
-# p = polygon()
-# p.get_stonks("2025-03-31", "2025-04-04")
+# truth_pull_posts(Api(), "realdonaldtrump", "2025-03-31")
+p = polygon()
+p.get_stonks("2025-03-31", "2025-04-04")
 
 def get_json_content(filename):
 
