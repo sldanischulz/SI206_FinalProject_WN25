@@ -12,6 +12,10 @@ import os
 import requests
 import json
 import sqlite3
+from truthbrush.api import Api
+from datetime import datetime, timezone
+import json
+from polygon import RESTClient
 
 '''
 Abstract:
@@ -42,6 +46,70 @@ Step by step: (this is for me to check myself and see if I understand what's up)
     8. Rally
 
 '''
+def truth_user_lookup(api, handle):
+    """Pulls a user's basic information from Truthsocial and stores it in a .json"""
+
+    user = api.lookup(handle)
+    with open(f"{handle}_info.json", "w") as json_file:
+        json.dump(user, json_file, indent=4)
+    return user
+
+def truth_pull_posts(api, handle, start_date):
+    """Pulls a user's posts after a defined date from Truthsocial and stores it in a .json"""
+
+    partial_pull = list(api.pull_statuses(username=handle, replies=False, created_after=start_date, verbose=True))
+    with open(f"{handle}_statuses.json", "w") as json_file:
+        json.dump(partial_pull, json_file, indent=4)
+    return partial_pull
+
+class polygon():
+    def __init__(self):
+        with open(r'c:\Users\jackb\Documents\School\YEAR2\Winter\SI206\Project\Final Proj\apikey.txt', 'r') as file:
+            self.key = file.read().strip()
+        pass
+    def get_stonks(self, date_start, date_end):
+        
+        client = RESTClient(self.key)
+
+        aggs = []
+        for a in client.list_aggs(
+            "TSLA",
+            1,
+            "day",
+            date_start,
+            date_end,
+            adjusted="true",
+            sort="asc",
+            limit=120,
+        ):
+            print(a)
+            aggs.append(a)
+
+        print(aggs)
+        aggs_dict = [
+            {
+            "open": a.open,
+            "high": a.high,
+            "low": a.low,
+            "close": a.close,
+            "volume": a.volume,
+            "vwap": a.vwap,
+            "timestamp": a.timestamp,
+            "transactions": a.transactions,
+            "otc": a.otc,
+            }
+            for a in aggs
+        ]
+
+        print(aggs_dict)
+        return aggs_dict
+        return
+
+# truth_user_lookup(Api(), "realdonaldtrump")
+truth_pull_posts(Api(), "realdonaldtrump", "2025-03-31")
+# p = polygon()
+# p.get_stonks("2025-03-31", "2025-04-04")
+
 def get_json_content(filename):
 
     '''
