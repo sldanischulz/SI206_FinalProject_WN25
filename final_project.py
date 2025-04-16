@@ -70,7 +70,9 @@ class polygon():
     def __init__(self):
         # Read the API key from a file
         # Change the path to the location of your apikey.txt file
-        with open(r'c:\Users\jackb\Documents\School\YEAR2\Winter\SI206\Project\Final Proj\apikey.txt', 'r') as file:
+        path = os.path.dirname(os.path.abspath(__file__))
+        full_path = path + r'\api_key.txt'
+        with open(full_path, 'r') as file:
             self.key = file.read().strip()
         pass
     def get_stonks(self, date_start, date_end):
