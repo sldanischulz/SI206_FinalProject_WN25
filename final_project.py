@@ -7,6 +7,7 @@
 #   - Danielle Schulz (dfaria@umich.edu - UMID 63218489)
 
 from bs4 import BeautifulSoup
+import http.client
 import re
 import os
 import requests
@@ -17,6 +18,10 @@ from datetime import datetime, timezone, timedelta
 import json
 from polygon import RESTClient
 from datetime import datetime
+import jwt
+from cryptography.hazmat.primitives import serialization
+import time
+import secrets
 
 '''
 Abstract:
@@ -70,7 +75,7 @@ class polygon():
     def __init__(self):
         # Read the API key from a file
         path = os.path.dirname(os.path.abspath(__file__))
-        full_path = path + r'\api_key.txt'
+        full_path = path + r'\polygon_api_key.txt'
         with open(full_path, 'r') as file:
             self.key = file.read().strip()
         pass
@@ -118,13 +123,62 @@ class polygon():
         with open(f"stocks_{str(date_start)[0:10]}_to_{str(date_end)[0:10]}.json", "w") as json_file:
             json.dump(new_aggs_dict, json_file, indent=4)
         return
+
 offset = timezone(timedelta(hours=2))
 dt_start = datetime(2025, 3, 31, tzinfo=offset)
 dt_end = datetime(2025, 4, 4, tzinfo=offset)
 # truth_user_lookup(Api(), "realdonaldtrump")
-truth_pull_posts(Api(), "realdonaldtrump", dt_start)
-p = polygon()
-p.get_stonks(dt_start, dt_end)
+# truth_pull_posts(Api(), "realdonaldtrump", dt_start)
+# p = polygon()
+# p.get_stonks(dt_start, dt_end)
+
+def get_token(request_path="/api/v3/brokerage/products/BTC-USD", request_method="GET", request_host="api.coinbase.com"):
+    key_name       = "organizations/32eb8db2-c903-4e05-ad8f-364aaba57abc/apiKeys/a3d644d7-e3b9-415d-8fd0-6e21b134075a"
+    key_secret     = "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIDVtwQe7UrJs6CLIPUnTnO7yaGZe0ApStBdNt1CfgtZkoAoGCCqGSM49\nAwEHoUQDQgAE8NCwJj9td0GBnvZfjGasrjxjC2pHlSM4hafan+ThKJqsYCga9tvS\nsHn5X77vJTNi9xKr2kD38Nhu2Y9TSRXpCQ==\n-----END EC PRIVATE KEY-----\n"
+    
+    private_key_bytes = key_secret.encode('utf-8')
+    private_key = serialization.load_pem_private_key(private_key_bytes, password=None)
+    jwt_payload = {
+        'sub': key_name,
+        'iss': "cdp",
+        'nbf': int(time.time()),
+        'exp': int(time.time()) + 120,
+        'uri': f"{request_method} {request_host}{request_path}",
+    }
+    jwt_token = jwt.encode(
+        jwt_payload,
+        private_key,
+        algorithm='ES256',
+        headers={'kid': key_name, 'nonce': secrets.token_hex()},
+    )
+    return jwt_token
+
+def coin_candles(coin, start_date, end_date):
+    
+    start_timestamp = start_date.timestamp()
+    end_timestamp = end_date.timestamp()
+    print(start_timestamp)
+    print(end_timestamp)
+    base = f'/api/v3/brokerage/products/{coin}/candles'
+
+    token = get_token(base)
+
+    conn = http.client.HTTPSConnection("api.coinbase.com")
+    payload = ''
+    headers = {
+    'Content-Type': 'application/json',
+    'Authorization': f'Bearer {token}',
+
+    }
+    conn.request("GET", f"{base}?start={int(start_timestamp)}&end={int(end_timestamp)}&granularity=ONE_DAY&limit=25", payload, headers)
+    res = conn.getresponse()
+    data = res.read()
+    decoded_data = data.decode("utf-8")
+    with open(f"crypto_candles_{str(start_date)[0:10]}.json", "w") as json_file:
+        json.dump(json.loads(decoded_data), json_file, indent=4)
+
+candles = coin_candles("BTC-USD", dt_start, dt_end)
+print(candles)
 
 def get_json_content(filename):
 
