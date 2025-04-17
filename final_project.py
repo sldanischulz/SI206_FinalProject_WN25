@@ -181,6 +181,7 @@ def coin_candles(coin, start_date, end_date):
 # print(candles)
 
 def get_currency_rates():
+    # NOT WORKING BECAUSE WE WOULD NEED TO PAY FOR THIS ONE
     conn = http.client.HTTPSConnection("api.currencyfreaks.com")
     payload = ''
     headers = {}
