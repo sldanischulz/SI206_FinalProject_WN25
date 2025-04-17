@@ -26,9 +26,10 @@ import secrets
 '''
 Abstract:
 API's:
-    - Truthbrush
-    - Market one
-    - Trendy word one
+    - Truthbrush TruthSocial API
+    - Polygon Market API
+    - Coinbase Crypto Currency API
+    - SerpApi Google Trends API
 
 Step by step: (this is for me to check myself and see if I understand what's up)
   FIRST ANALYSIS: The correlation between Trump's posts and the Stock Market  
@@ -65,7 +66,8 @@ def truth_pull_posts(api, handle, start_date):
     """Pulls a user's posts after a defined date from Truthsocial and stores it in a .json"""
 
     partial_pull = list(api.pull_statuses(username=handle, replies=False, created_after=start_date, verbose=True))
-    with open(f"{handle}_statuses.json", "w") as json_file:
+    partial_pull = partial_pull[0:25]
+    with open(f"{start_date}_{handle}_statuses.json", "w") as json_file:
         json.dump(partial_pull, json_file, indent=4)
     return partial_pull
 
@@ -80,13 +82,13 @@ class polygon():
             self.key = file.read().strip()
         pass
     def get_stonks(self, date_start, date_end):
-        """Pulls historical stock market data from Polygon API and stores it in a .json file."""
+        """Pulls historical NASDAQ Indicie data from Polygon API and stores it in a .json file."""
         
         client = RESTClient(self.key)
 
         aggs = []
         for a in client.list_aggs(
-            "TSLA",
+            "I:NDX",
             1,
             "day",
             date_start,
@@ -129,8 +131,8 @@ dt_start = datetime(2025, 3, 31, tzinfo=offset)
 dt_end = datetime(2025, 4, 4, tzinfo=offset)
 # truth_user_lookup(Api(), "realdonaldtrump")
 # truth_pull_posts(Api(), "realdonaldtrump", dt_start)
-# p = polygon()
-# p.get_stonks(dt_start, dt_end)
+p = polygon()
+p.get_stonks(dt_start, dt_end)
 
 def get_token(request_path="/api/v3/brokerage/products/BTC-USD", request_method="GET", request_host="api.coinbase.com"):
     key_name       = "organizations/32eb8db2-c903-4e05-ad8f-364aaba57abc/apiKeys/a3d644d7-e3b9-415d-8fd0-6e21b134075a"
@@ -190,8 +192,8 @@ def get_currency_rates():
     data = res.read()
     return(data.decode("utf-8"))
 
-curr = get_currency_rates()
-print(curr)
+# curr = get_currency_rates()
+# print(curr)
 
 def get_json_content(filename):
 
@@ -264,7 +266,7 @@ def add_posts_to_table(data, cur, conn):
 
         cur.execute(
             "INSERT OR IGNORE INTO Engagement (post_id, replies_count, reblogs_count, favourites_count) VALUES (?,?,?,?)",
-            (data[i]['post_id'], rep, reb, fav)
+            (data[i]['id'], rep, reb, fav)
         )
 
         cur.execute(
@@ -284,16 +286,16 @@ def set_up_market_table(data, cur, conn):
 
     conn.commit()
 
-def add_posts_to_table(data, cur, conn):
+def add_marketdata_to_table(data, cur, conn):
     '''
     Data = List of dictionaries with market data  
     '''
 
-    for i in data.items():
+    for i in range(len(data)):
 
         cur.execute(
             "INSERT OR IGNORE INTO Market (id, timestamp, open, close, high, low) VALUES (?,?,?,?,?,?)", (i,
-                                                                                                          data[i]['timestamp'],
+                                                                                                          data[i]['created_at'],
                                                                                                           data[i]['open'],
                                                                                                           data[i]['close'],
                                                                                                           data[i]['high'],
@@ -305,7 +307,13 @@ def add_posts_to_table(data, cur, conn):
 
 
 def main():
-    pass
+    # Set up database
+    cur, conn = set_up_database("final_project.db")
+    set_up_posts_tables(cur, conn)
+    data = get_json_content("realdonaldtrump_statuses.json")
+    print(data)
+    add_posts_to_table(data, cur, conn)
+    #pass
 
 if __name__ == '__main__':
     main()
