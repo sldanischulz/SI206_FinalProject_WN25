@@ -177,8 +177,20 @@ def coin_candles(coin, start_date, end_date):
     with open(f"crypto_candles_{str(start_date)[0:10]}.json", "w") as json_file:
         json.dump(json.loads(decoded_data), json_file, indent=4)
 
-candles = coin_candles("BTC-USD", dt_start, dt_end)
-print(candles)
+# candles = coin_candles("BTC-USD", dt_start, dt_end)
+# print(candles)
+
+def get_currency_rates():
+    conn = http.client.HTTPSConnection("api.currencyfreaks.com")
+    payload = ''
+    headers = {}
+    conn.request("GET", "/v2.0/rates/historical?date=2022-03-20&base=usd&symbols=gbp,eur,pkr,cad&apikey=dc64885d5e1047888acca2ff0451b30f", payload, headers)
+    res = conn.getresponse()
+    data = res.read()
+    return(data.decode("utf-8"))
+
+curr = get_currency_rates()
+print(curr)
 
 def get_json_content(filename):
 
