@@ -52,23 +52,31 @@ Step by step: (this is for me to check myself and see if I understand what's up)
     8. Rally
 '''
 
-# Truth Social API Request
-def truth_user_lookup(api, handle):
-    """Pulls a user's basic information from Truthsocial and stores it in a .json"""
+# # Truth Social API Request
+# def truth_user_lookup(api, handle):
+#     """Pulls a user's basic information from Truthsocial and stores it in a .json"""
 
-    user = api.lookup(handle)
-    with open(f"{handle}_info.json", "w") as json_file:
-        json.dump(user, json_file, indent=4)
-    return user
+#     user = api.lookup(handle)
+#     with open(f"{handle}_info.json", "w") as json_file:
+#         json.dump(user, json_file, indent=4)
+#     return user
 
-def truth_pull_posts(api, handle, start_date):
-    """Pulls a user's posts after a defined date from Truthsocial and stores it in a .json"""
+# def truth_pull_posts(api, handle, start_date):
+#     """Pulls a user's posts after a defined date from Truthsocial and stores it in a .json"""
+#     partial_pull = []
+#     # partial_pull = list(api.pull_statuses(username=handle, replies=False, created_after=start_date, verbose=True))
+#     try:
+#         for a in (api.pull_statuses(username=handle, replies=False, created_after=start_date, verbose=True)):
+#             # print(a)
+#             partial_pull.append(a)
+            
+#     except:
+#         print(f"Truthbrush is done early before the date. The last post date is {partial_pull[-1]['created_at'][0:10]}")
 
-    partial_pull = list(api.pull_statuses(username=handle, replies=False, created_after=start_date, verbose=True))
-    partial_pull = partial_pull[0:25]
-    with open(f"{start_date}_{handle}_statuses.json", "w") as json_file:
-        json.dump(partial_pull, json_file, indent=4)
-    return partial_pull
+#     # print(partial_pull)
+#     with open(f"{str(start_date)[0:9]}_statuses.json", "w") as json_file:
+#         json.dump(partial_pull, json_file, indent=4)
+#     return partial_pull
 
 # Historical Stock Market Data API Request
 class polygon():
@@ -122,17 +130,11 @@ class polygon():
             "otc": a.otc,
             }
             
-        with open(f"stocks_{str(date_start)[0:10]}_to_{str(date_end)[0:10]}.json", "w") as json_file:
+        with open(f"stocks_{str(date_start)[0:10]}.json", "w") as json_file:
             json.dump(new_aggs_dict, json_file, indent=4)
         return
 
-offset = timezone(timedelta(hours=2))
-dt_start = datetime(2025, 3, 31, tzinfo=offset)
-dt_end = datetime(2025, 4, 4, tzinfo=offset)
-# truth_user_lookup(Api(), "realdonaldtrump")
-# truth_pull_posts(Api(), "realdonaldtrump", dt_start)
-# p = polygon()
-# p.get_stonks(dt_start, dt_end)
+
 
 def get_token(request_path="/api/v3/brokerage/products/BTC-USD", request_method="GET", request_host="api.coinbase.com"):
     key_name       = "organizations/32eb8db2-c903-4e05-ad8f-364aaba57abc/apiKeys/a3d644d7-e3b9-415d-8fd0-6e21b134075a"
@@ -176,24 +178,22 @@ def coin_candles(coin, start_date, end_date):
     res = conn.getresponse()
     data = res.read()
     decoded_data = data.decode("utf-8")
-    with open(f"crypto_candles_{str(start_date)[0:10]}.json", "w") as json_file:
+    with open(f"crypto_{str(start_date)[0:10]}.json", "w") as json_file:
         json.dump(json.loads(decoded_data), json_file, indent=4)
 
-# candles = coin_candles("BTC-USD", dt_start, dt_end)
-# print(candles)
 
-def get_currency_rates():
-    # NOT WORKING BECAUSE WE WOULD NEED TO PAY FOR THIS ONE
-    conn = http.client.HTTPSConnection("api.currencyfreaks.com")
+def get_stonks_finage(stock, date_start, date_end):
+    conn = http.client.HTTPSConnection("api.finage.co.uk")
     payload = ''
     headers = {}
-    conn.request("GET", "/v2.0/rates/historical?date=2022-03-20&base=usd&symbols=gbp,eur,pkr,cad&apikey=dc64885d5e1047888acca2ff0451b30f", payload, headers)
+    conn.request("GET", f"/agg/stock/{stock}/1/day/{date_start}/{date_end}?apikey=API_KEY35CA0PQ4F85418304JYBS65LB01AWMNG", payload, headers)
     res = conn.getresponse()
     data = res.read()
-    return(data.decode("utf-8"))
+    print(data)
+    decoded_data = data.decode("utf-8")
+    with open(f"{stock}_{date_start}.json", "w") as json_file:
+        json.dump(json.loads(decoded_data), json_file, indent=4)
 
-# curr = get_currency_rates()
-# print(curr)
 
 def get_json_content(filename):
 
@@ -242,11 +242,15 @@ def set_up_database(db_name):
 def set_up_posts_tables(cur, conn):
     
     cur.execute(
-        "CREATE TABLE IF NOT EXISTS Posts (post_id INTEGER PRIMARY KEY, timestamp TEXT, post_content TEXT, engagement INTEGER)"
+        "CREATE TABLE IF NOT EXISTS Posts (post_id INTEGER PRIMARY KEY, timestamp TEXT, post_content TEXT, engagement INTEGER, day_key INTEGER)"
     )
     
     cur.execute(
         "CREATE TABLE IF NOT EXISTS Engagement (post_id INTEGER PRIMARY KEY, replies INTEGER, reblogs INTEGER, favourites INTEGER)"
+    )
+
+    cur.execute(
+        "CREATE TABLE IF NOT EXISTS PostPerDay (day_key INTEGER PRIMARY KEY, count INTEGER)"
     )
     
     conn.commit()
@@ -278,50 +282,219 @@ def add_posts_to_table(data, cur, conn):
 
     conn.commit()
 
-def set_up_market_table(data, cur, conn):
+def set_up_market_coin_table(cur, conn):
     
     cur.execute(
-        "CREATE TABLE IF NOT EXISTS Market (id INTEGER PRIMARY KEY, timestamp TEXT, open INTEGER, close INTEGER, high INTEGER, low INTEGER)"
+        "CREATE TABLE IF NOT EXISTS Market (id INTEGER PRIMARY KEY, start TEXT, open INTEGER, close INTEGER, high INTEGER, low INTEGER, timestamp INTEGER)"
+    )
+
+    cur.execute(
+        "CREATE TABLE IF NOT EXISTS Cripto (id INTEGER PRIMARY KEY, timestamp TEXT, open INTEGER, close INTEGER, high INTEGER, low INTEGER)"
+    )
+
+    cur.execute(
+        "CREATE TABLE IF NOT EXISTS Nvda (id INTEGER PRIMARY KEY, timestamp TEXT, open INTEGER, close INTEGER, high INTEGER, low INTEGER)"
+    )
+
+    cur.execute(
+        "CREATE TABLE IF NOT EXISTS Stock (id INTEGER PRIMARY KEY, timestamp TEXT, open INTEGER, close INTEGER, high INTEGER, low INTEGER)"
     )
 
     conn.commit()
 
-def add_marketdata_to_table(data, cur, conn):
+# def add_marketdata_to_table(market, cur, conn, m_counter):
+#     '''
+#     Data = List of dictionaries with market data  
+#     '''
+
+#     for key in market.keys():
+
+#         cur.execute(
+#             "INSERT OR IGNORE INTO Market (id, timestamp, open, close, high, low) VALUES (?,?,?,?,?,?)", (m_counter,
+#                                                                                                           market[key]['timestamp'],
+#                                                                                                           market[key]['open'],
+#                                                                                                           market[key]['close'],
+#                                                                                                           market[key]['high'],
+#                                                                                                           market[key]['low'])                                                                                                        
+#         )
+
+#         m_counter += 1
+
+#     conn.commit()
+
+#     return m_counter
+
+
+def add_criptodata_to_table(coin, cur, conn, counter):
     '''
     Data = List of dictionaries with market data  
     '''
-
-    for i in range(len(data)):
-
+    for i in range(len(coin['candles'])):
         cur.execute(
-            "INSERT OR IGNORE INTO Market (id, timestamp, open, close, high, low) VALUES (?,?,?,?,?,?)", (i,
-                                                                                                          data[i]['created_at'],
-                                                                                                          data[i]['open'],
-                                                                                                          data[i]['close'],
-                                                                                                          data[i]['high'],
-                                                                                                          data[i]['low'])                                                                                                        
+            "INSERT OR IGNORE INTO Cripto (id, timestamp, open, close, high, low) VALUES (?,?,?,?,?,?)", (counter,
+                                                                                                          coin['candles'][i]['start'],
+                                                                                                          coin['candles'][i]['open'],
+                                                                                                          coin['candles'][i]['close'],
+                                                                                                          coin['candles'][i]['high'],
+                                                                                                          coin['candles'][i]['low'])                                                                                                        
         )
+        counter += 1
+        
+    conn.commit()
+
+    return counter
+
+def add_nvdadata_to_table(coin, cur, conn, counter):
+    '''
+    Data = List of dictionaries with market data  
+    '''
+    for i in range(len(coin['results'])):
+        cur.execute(
+            "INSERT OR IGNORE INTO Nvda (id, timestamp, open, close, high, low) VALUES (?,?,?,?,?,?)", (counter,
+                                                                                                          coin['results'][i]['t'],
+                                                                                                          coin['results'][i]['o'],
+                                                                                                          coin['results'][i]['c'],
+                                                                                                          coin['results'][i]['h'],
+                                                                                                          coin['results'][i]['l'])                                                                                                        
+        )
+        counter += 1
 
     conn.commit()
 
 
+def add_stockdata_to_table(coin, cur, conn, counter):
+    '''
+    Data = List of dictionaries with market data  
+    '''
+    for i in coin.values():
+        cur.execute(
+            "INSERT OR IGNORE INTO Stock (id, timestamp, open, close, high, low) VALUES (?,?,?,?,?,?)", (counter,
+                                                                                                      i['timestamp'],
+                                                                                                      i['open'],
+                                                                                                      i['close'],
+                                                                                                      i['high'],
+                                                                                                      i['low'])                                                                                                        
+        )
+        counter += 1
+        
+    conn.commit()
+
 
 def main():
+    print("HI IT RANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN")
     ######################################################################### SETUP
     # Set up database
-    cur, conn = set_up_database("final_project.db") 
+    cur, conn = set_up_database("NEW_final_project.db") 
 
     # Creates tables POSTS and ENGAGEMENT
-    set_up_posts_tables(cur, conn)
+    # set_up_posts_tables(cur, conn)
+    set_up_market_coin_table(cur, conn)
 
+    # Set Start and End Dates
+    offset = timezone(timedelta(hours=2))
+    dt_start = datetime(2025, 3, 30, tzinfo=offset)
+    dt_end = datetime(2025, 4, 16, tzinfo=offset)
+
+    ######################################################################### Calling API Calls
+    # Calculate the range between two datetime objects
+    # date_range = (dt_end - dt_start).days
+    # print(f"Range between dt_start and dt_end in days: {date_range}")
+
+    # p = polygon()
+    # p.get_stonks(str(datetime(2025, 1, 1, tzinfo=offset))[0:10], str(datetime(2025, 1, 26, tzinfo=offset))[0:10])
+    # get_stonks_finage("NVDA", str(datetime(2025, 1, 26, tzinfo=offset))[0:10], str(datetime(2025, 2, 19, tzinfo=offset))[0:10])
+    # coin_candles("BTC-USD", datetime(2025, 2, 19, tzinfo=offset), datetime(2025, 3, 16, tzinfo=offset))
+    # time.sleep(10)
+
+    # p.get_stonks(str(datetime(2025, 1, 1, tzinfo=offset))[0:10], str(datetime(2025, 1, 26, tzinfo=offset))[0:10])
+    # get_stonks_finage("NVDA", str(datetime(2025, 1, 1, tzinfo=offset))[0:10], str(datetime(2025, 1, 26, tzinfo=offset))[0:10])
+    # coin_candles("BTC-USD", datetime(2025, 1, 1, tzinfo=offset), datetime(2025, 1, 26, tzinfo=offset))
+    # time.sleep(10)
+
+    # p.get_stonks(str(datetime(2025, 1, 26, tzinfo=offset))[0:10], str(datetime(2025, 2, 19, tzinfo=offset))[0:10])
+    # get_stonks_finage("NVDA", str(datetime(2025, 1, 26, tzinfo=offset))[0:10], str(datetime(2025, 2, 19, tzinfo=offset))[0:10])
+    # coin_candles("BTC-USD", datetime(2025, 1, 26, tzinfo=offset), datetime(2025, 2, 19, tzinfo=offset))
+    # time.sleep(10)
+
+    # p.get_stonks(str(datetime(2025, 2, 19, tzinfo=offset))[0:10], str(datetime(2025, 3, 16, tzinfo=offset))[0:10])
+    # get_stonks_finage("NVDA", str(datetime(2025, 2, 19, tzinfo=offset))[0:10], str(datetime(2025, 3, 16, tzinfo=offset))[0:10])
+    # coin_candles("BTC-USD", datetime(2025, 2, 19, tzinfo=offset), datetime(2025, 3, 16, tzinfo=offset))
+    # time.sleep(10)
+
+    # p.get_stonks(str(datetime(2025, 3, 16, tzinfo=offset))[0:10], str(datetime(2025, 4, 10, tzinfo=offset))[0:10])
+    # get_stonks_finage("NVDA", str(datetime(2025, 3, 16, tzinfo=offset))[0:10], str(datetime(2025, 4, 10, tzinfo=offset))[0:10])
+    # coin_candles("BTC-USD", datetime(2025, 3, 16, tzinfo=offset), datetime(2025, 4, 10, tzinfo=offset))
+    # time.sleep(10)
+
+    # p.get_stonks(str(datetime(2025, 4, 10, tzinfo=offset))[0:10], str(datetime(2025, 4, 18, tzinfo=offset))[0:10])
+    # get_stonks_finage("NVDA", str(datetime(2025, 4, 10, tzinfo=offset))[0:10], str(datetime(2025, 4, 18, tzinfo=offset))[0:10])
+    # coin_candles("BTC-USD", datetime(2025, 4, 10, tzinfo=offset), datetime(2025, 4, 18, tzinfo=offset))
+    # time.sleep(10)
+    
+
+
+    # for i in range(date_range):
+    #     dt_new_start = dt_start + timedelta(days=i)
+    #     dt_new_end = dt_new_start + timedelta(days=3)
+    #     # # Call Polygon API to retrieve NASDAQ Indicie data per the dates given, return JSON
+    #     p = polygon()
+    #     p.get_stonks(dt_new_start, dt_new_end)
+
+    #     # # Call Coinbase API to retrieve Bitcoin data per the dates given, return JSON
+    #     coin_candles("BTC-USD", dt_new_start, dt_new_end)
+    #     print("waiting for 12s before next...")
+    #     time.sleep(12)
+    #     print("moving on")
+    #     print("----------------------------------")
+
+    # Call Truthbrush to scrape posts (May get rate limited)
+    # print("Done")
+    # truth_pull_posts(Api(), "realdonaldtrump", dt_start, dt_end)
+
+    
+    
+    
     ######################################################################### Adding data to tables
-    # Pulls data from json and make it into list of dictionaries
-    posts = get_json_content("realdonaldtrump_statuses.json")
-    #print(data) # Test to visualize the data
+   
+    
+    polygon_list = ["stocks_2025-01-01.json",      # 01
+                    "stocks_2025-01-26.json",      # 02
+                    "stocks_2025-02-19.json",      # 03
+                    "stocks_2025-03-16.json",
+                    "stocks_2025-04-10.json"]
 
-    # Adds info from dictionary into the database
-    add_posts_to_table(posts, cur, conn)
-    #pass
+    finage_list = ["NVDA_2025-01-01.json",         # 01
+                   "NVDA_2025-01-26.json",         # 02
+                   "NVDA_2025-02-19.json",         # 03
+                   "NVDA_2025-03-16.json",
+                   "NVDA_2025-04-10.json"]         # 04
+  
+    cripto_list = ["crypto_2025-01-01.json",       # 01
+                   "crypto_2025-01-26.json",       # 02
+                   "crypto_2025-02-19.json",       # 03
+                   "crypto_2025-03-16.json",
+                   "crypto_2025-04-10.json"]       # 04  
+
+    counter = 1
+    for i in range(len(finage_list)):
+
+        # Pulls data from json and make it into list of dictionaries
+        polygon = get_json_content(polygon_list[i])
+        finage = get_json_content(finage_list[i])
+        cripto = get_json_content(cripto_list[i])
+        
+        
+        add_nvdadata_to_table(finage, cur, conn, counter)
+        add_stockdata_to_table(polygon, cur, conn, counter)
+        num = add_criptodata_to_table(cripto, cur, conn, counter)
+        counter = num
+    
+
+
+    # pass
+
+
+
 
 if __name__ == '__main__':
     main()
