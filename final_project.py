@@ -15,10 +15,10 @@ import sqlite3
 #from truthbrush.api import Api
 from datetime import datetime, timezone, timedelta
 import json
-#from polygon import RESTClient
+from polygon import RESTClient
 from datetime import datetime
-#import jwt
-#from cryptography.hazmat.primitives import serialization
+import jwt
+from cryptography.hazmat.primitives import serialization
 import time
 import secrets
 
@@ -79,7 +79,7 @@ Step by step: (this is for me to check myself and see if I understand what's up)
 #     return partial_pull
 
 # Historical Stock Market Data API Request
-class polygon():
+class Polygon():
     """Initializes the Polygon API client with the API key."""
     def __init__(self):
         # Read the API key from a file
@@ -357,10 +357,11 @@ def add_nvdadata_to_table(coin, cur, conn, counter):
                                                                                                           coin['results'][i]['h'],
                                                                                                           coin['results'][i]['l'])                                                                                                        
         )
-        counter += 1
+        counter +=1
 
     conn.commit()
 
+    return counter
 
 def add_stockdata_to_table(coin, cur, conn, counter):
     '''
@@ -379,12 +380,13 @@ def add_stockdata_to_table(coin, cur, conn, counter):
         
     conn.commit()
 
+    return counter
 
 def main():
     print("HI IT RANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN")
     ######################################################################### SETUP
     # Set up database
-    cur, conn = set_up_database("NEW_final_project.db") 
+    cur, conn = set_up_database("NEW1_final_project.db") 
 
     # Creates tables POSTS and ENGAGEMENT
     # set_up_posts_tables(cur, conn)
@@ -400,35 +402,40 @@ def main():
     # date_range = (dt_end - dt_start).days
     # print(f"Range between dt_start and dt_end in days: {date_range}")
 
-    # p = polygon()
-    # p.get_stonks(str(datetime(2025, 1, 1, tzinfo=offset))[0:10], str(datetime(2025, 1, 26, tzinfo=offset))[0:10])
-    # get_stonks_finage("NVDA", str(datetime(2025, 1, 26, tzinfo=offset))[0:10], str(datetime(2025, 2, 19, tzinfo=offset))[0:10])
-    # coin_candles("BTC-USD", datetime(2025, 2, 19, tzinfo=offset), datetime(2025, 3, 16, tzinfo=offset))
+    # p = Polygon()
+    # p.get_stonks(str(datetime(2024, 11, 1, tzinfo=offset))[0:10], str(datetime(2024, 11, 26, tzinfo=offset))[0:10])
+    # get_stonks_finage("NVDA", str(datetime(2024, 11, 1, tzinfo=offset))[0:10], str(datetime(2024, 11, 26, tzinfo=offset))[0:10])
+    # coin_candles("BTC-USD", datetime(2024, 11, 1, tzinfo=offset), datetime(2024, 11, 26, tzinfo=offset))
     # time.sleep(10)
 
-    # p.get_stonks(str(datetime(2025, 1, 1, tzinfo=offset))[0:10], str(datetime(2025, 1, 26, tzinfo=offset))[0:10])
-    # get_stonks_finage("NVDA", str(datetime(2025, 1, 1, tzinfo=offset))[0:10], str(datetime(2025, 1, 26, tzinfo=offset))[0:10])
-    # coin_candles("BTC-USD", datetime(2025, 1, 1, tzinfo=offset), datetime(2025, 1, 26, tzinfo=offset))
+    # p.get_stonks(str(datetime(2024, 11, 26, tzinfo=offset))[0:10], str(datetime(2024, 12, 21, tzinfo=offset))[0:10])
+    # get_stonks_finage("NVDA", str(datetime(2024, 11, 26, tzinfo=offset))[0:10], str(datetime(2024, 12, 21, tzinfo=offset))[0:10])
+    # coin_candles("BTC-USD", datetime(2024, 11, 26, tzinfo=offset), datetime(2024, 12, 21, tzinfo=offset))
     # time.sleep(10)
 
-    # p.get_stonks(str(datetime(2025, 1, 26, tzinfo=offset))[0:10], str(datetime(2025, 2, 19, tzinfo=offset))[0:10])
-    # get_stonks_finage("NVDA", str(datetime(2025, 1, 26, tzinfo=offset))[0:10], str(datetime(2025, 2, 19, tzinfo=offset))[0:10])
-    # coin_candles("BTC-USD", datetime(2025, 1, 26, tzinfo=offset), datetime(2025, 2, 19, tzinfo=offset))
+    # p.get_stonks(str(datetime(2024, 12, 21, tzinfo=offset))[0:10], str(datetime(2025, 1, 15, tzinfo=offset))[0:10])
+    # get_stonks_finage("NVDA", str(datetime(2024, 12, 21, tzinfo=offset))[0:10], str(datetime(2025, 1, 15, tzinfo=offset))[0:10])
+    # coin_candles("BTC-USD", datetime(2024, 12, 21, tzinfo=offset), datetime(2025, 1, 15, tzinfo=offset))
     # time.sleep(10)
 
-    # p.get_stonks(str(datetime(2025, 2, 19, tzinfo=offset))[0:10], str(datetime(2025, 3, 16, tzinfo=offset))[0:10])
-    # get_stonks_finage("NVDA", str(datetime(2025, 2, 19, tzinfo=offset))[0:10], str(datetime(2025, 3, 16, tzinfo=offset))[0:10])
-    # coin_candles("BTC-USD", datetime(2025, 2, 19, tzinfo=offset), datetime(2025, 3, 16, tzinfo=offset))
+    # p.get_stonks(str(datetime(2025, 1, 15, tzinfo=offset))[0:10], str(datetime(2025, 2, 9, tzinfo=offset))[0:10])
+    # get_stonks_finage("NVDA", str(datetime(2025, 1, 15, tzinfo=offset))[0:10], str(datetime(2025, 2, 9, tzinfo=offset))[0:10])
+    # coin_candles("BTC-USD", datetime(2025, 1, 15, tzinfo=offset), datetime(2025, 2, 9, tzinfo=offset))
     # time.sleep(10)
 
-    # p.get_stonks(str(datetime(2025, 3, 16, tzinfo=offset))[0:10], str(datetime(2025, 4, 10, tzinfo=offset))[0:10])
-    # get_stonks_finage("NVDA", str(datetime(2025, 3, 16, tzinfo=offset))[0:10], str(datetime(2025, 4, 10, tzinfo=offset))[0:10])
-    # coin_candles("BTC-USD", datetime(2025, 3, 16, tzinfo=offset), datetime(2025, 4, 10, tzinfo=offset))
+    # p.get_stonks(str(datetime(2025, 2, 9, tzinfo=offset))[0:10], str(datetime(2025, 3, 6, tzinfo=offset))[0:10])
+    # get_stonks_finage("NVDA", str(datetime(2025, 2, 9, tzinfo=offset))[0:10], str(datetime(2025, 3, 6, tzinfo=offset))[0:10])
+    # coin_candles("BTC-USD", datetime(2025, 2, 9, tzinfo=offset), datetime(2025, 3, 6, tzinfo=offset))
     # time.sleep(10)
 
-    # p.get_stonks(str(datetime(2025, 4, 10, tzinfo=offset))[0:10], str(datetime(2025, 4, 18, tzinfo=offset))[0:10])
-    # get_stonks_finage("NVDA", str(datetime(2025, 4, 10, tzinfo=offset))[0:10], str(datetime(2025, 4, 18, tzinfo=offset))[0:10])
-    # coin_candles("BTC-USD", datetime(2025, 4, 10, tzinfo=offset), datetime(2025, 4, 18, tzinfo=offset))
+    # p.get_stonks(str(datetime(2025, 3, 6, tzinfo=offset))[0:10], str(datetime(2025, 3, 31, tzinfo=offset))[0:10])
+    # get_stonks_finage("NVDA", str(datetime(2025, 3, 6, tzinfo=offset))[0:10], str(datetime(2025, 3, 31, tzinfo=offset))[0:10])
+    # coin_candles("BTC-USD", datetime(2025, 3, 6, tzinfo=offset), datetime(2025, 3, 31, tzinfo=offset))
+    # time.sleep(10)
+
+    # p.get_stonks(str(datetime(2025, 3, 31, tzinfo=offset))[0:10], str(datetime(2025, 4, 17, tzinfo=offset))[0:10])
+    # get_stonks_finage("NVDA", str(datetime(2025, 3, 31, tzinfo=offset))[0:10], str(datetime(2025, 4, 17, tzinfo=offset))[0:10])
+    # coin_candles("BTC-USD", datetime(2025, 3, 31, tzinfo=offset), datetime(2025, 4, 17, tzinfo=offset))
     # time.sleep(10)
     
 
@@ -457,37 +464,48 @@ def main():
     ######################################################################### Adding data to tables
    
     
-    polygon_list = ["stocks_2025-01-01.json",      # 01
-                    "stocks_2025-01-26.json",      # 02
-                    "stocks_2025-02-19.json",      # 03
-                    "stocks_2025-03-16.json",
-                    "stocks_2025-04-10.json"]
+    polygon_list = ["stocks_2024-11-01.json",      # 01
+                    "stocks_2024-11-26.json",      # 01
+                    "stocks_2024-12-21.json",      # 02
+                    "stocks_2025-01-15.json",      # 03
+                    "stocks_2025-02-09.json",
+                    "stocks_2025-03-06.json",
+                    "stocks_2025-03-31.json"]
 
-    finage_list = ["NVDA_2025-01-01.json",         # 01
-                   "NVDA_2025-01-26.json",         # 02
-                   "NVDA_2025-02-19.json",         # 03
-                   "NVDA_2025-03-16.json",
-                   "NVDA_2025-04-10.json"]         # 04
+    finage_list = ["NVDA_2024-11-01.json",      # 01
+                    "NVDA_2024-11-26.json",      # 01
+                    "NVDA_2024-12-21.json",      # 02
+                    "NVDA_2025-01-15.json",      # 03
+                    "NVDA_2025-02-09.json",
+                    "NVDA_2025-03-06.json",
+                    "NVDA_2025-03-31.json"]         # 04
   
-    cripto_list = ["crypto_2025-01-01.json",       # 01
-                   "crypto_2025-01-26.json",       # 02
-                   "crypto_2025-02-19.json",       # 03
-                   "crypto_2025-03-16.json",
-                   "crypto_2025-04-10.json"]       # 04  
+    cripto_list = ["crypto_2024-11-01.json",       # 01
+                   "crypto_2024-11-26.json",       # 02
+                   "crypto_2024-12-21.json",       # 03
+                   "crypto_2025-01-15.json",       # 02
+                   "crypto_2025-02-09.json",       # 03
+                   "crypto_2025-03-06.json",
+                   "crypto_2025-03-31.json"]       # 04  
 
-    counter = 1
-    for i in range(len(finage_list)):
+    ncounter = 1
+    scounter = 1
+    ccounter = 1
+    
+    for i in range(7):
 
         # Pulls data from json and make it into list of dictionaries
         polygon = get_json_content(polygon_list[i])
         finage = get_json_content(finage_list[i])
         cripto = get_json_content(cripto_list[i])
-        
-        
-        add_nvdadata_to_table(finage, cur, conn, counter)
-        add_stockdata_to_table(polygon, cur, conn, counter)
-        num = add_criptodata_to_table(cripto, cur, conn, counter)
-        counter = num
+
+        nnum = add_nvdadata_to_table(finage, cur, conn, ncounter)
+        snum = add_stockdata_to_table(polygon, cur, conn, scounter)
+        cnum = add_criptodata_to_table(cripto, cur, conn, ccounter)
+
+        ncounter = nnum
+        ccounter = cnum
+        scounter = snum
     
 
 
