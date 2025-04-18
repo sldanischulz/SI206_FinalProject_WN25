@@ -13,13 +13,13 @@ import os
 import requests
 import json
 import sqlite3
-from truthbrush.api import Api
+#from truthbrush.api import Api
 from datetime import datetime, timezone, timedelta
 import json
-from polygon import RESTClient
+#from polygon import RESTClient
 from datetime import datetime
-import jwt
-from cryptography.hazmat.primitives import serialization
+#import jwt
+#from cryptography.hazmat.primitives import serialization
 import time
 import secrets
 
@@ -81,6 +81,7 @@ class polygon():
         with open(full_path, 'r') as file:
             self.key = file.read().strip()
         pass
+    
     def get_stonks(self, date_start, date_end):
         """Pulls historical NASDAQ Indicie data from Polygon API and stores it in a .json file."""
         
@@ -131,8 +132,8 @@ dt_start = datetime(2025, 3, 31, tzinfo=offset)
 dt_end = datetime(2025, 4, 4, tzinfo=offset)
 # truth_user_lookup(Api(), "realdonaldtrump")
 # truth_pull_posts(Api(), "realdonaldtrump", dt_start)
-p = polygon()
-p.get_stonks(dt_start, dt_end)
+# p = polygon()
+# p.get_stonks(dt_start, dt_end)
 
 def get_token(request_path="/api/v3/brokerage/products/BTC-USD", request_method="GET", request_host="api.coinbase.com"):
     key_name       = "organizations/32eb8db2-c903-4e05-ad8f-364aaba57abc/apiKeys/a3d644d7-e3b9-415d-8fd0-6e21b134075a"
@@ -265,7 +266,7 @@ def add_posts_to_table(data, cur, conn):
         eng = rep + reb + fav
 
         cur.execute(
-            "INSERT OR IGNORE INTO Engagement (post_id, replies_count, reblogs_count, favourites_count) VALUES (?,?,?,?)",
+            "INSERT OR IGNORE INTO Engagement (post_id, replies, reblogs, favourites) VALUES (?,?,?,?)",
             (data[i]['id'], rep, reb, fav)
         )
 
@@ -307,12 +308,20 @@ def add_marketdata_to_table(data, cur, conn):
 
 
 def main():
+    ######################################################################### SETUP
     # Set up database
-    cur, conn = set_up_database("final_project.db")
+    cur, conn = set_up_database("final_project.db") 
+
+    # Creates tables POSTS and ENGAGEMENT
     set_up_posts_tables(cur, conn)
-    data = get_json_content("realdonaldtrump_statuses.json")
-    print(data)
-    add_posts_to_table(data, cur, conn)
+
+    ######################################################################### Adding data to tables
+    # Pulls data from json and make it into list of dictionaries
+    posts = get_json_content("realdonaldtrump_statuses.json")
+    #print(data) # Test to visualize the data
+
+    # Adds info from dictionary into the database
+    add_posts_to_table(posts, cur, conn)
     #pass
 
 if __name__ == '__main__':
