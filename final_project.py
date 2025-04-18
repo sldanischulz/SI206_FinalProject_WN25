@@ -6,20 +6,19 @@
 #   - Oleg Korobkov (olegko@umich.edu - UMID 58329022)
 #   - Danielle Schulz (dfaria@umich.edu - UMID 63218489)
 
-from bs4 import BeautifulSoup
 import http.client
 import re
 import os
 import requests
 import json
 import sqlite3
-#from truthbrush.api import Api
+from truthbrush.api import Api
 from datetime import datetime, timezone, timedelta
 import json
-#from polygon import RESTClient
+from polygon import RESTClient
 from datetime import datetime
-#import jwt
-#from cryptography.hazmat.primitives import serialization
+import jwt
+from cryptography.hazmat.primitives import serialization
 import time
 import secrets
 
