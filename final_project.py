@@ -423,6 +423,9 @@ def get_dates():
                 end_date = datetime(s_year, s_month, s_day, tzinfo=offset) + timedelta(days=25)
                 print("Date interval set to 25 days.")
                 status = True
+            else:
+                print("Error in date")
+                continue
 
             return start_date, end_date
         
@@ -455,7 +458,7 @@ def main():
     print("\nData has been collected.\nNow adding it into the database.\n")
     
     ######################################################################### SETTING UP DATABASE
-    database_name = "NEW7_final_project.db"
+    database_name = "NEW8_final_project.db"
     cur, conn = set_up_database(database_name) 
 
     ## Creates tables 
@@ -494,6 +497,7 @@ def main():
         "SELECT COUNT(id) FROM Bitcoin"
         )
     
+    # CURRENTLY BROKEN
     print("Number of items in Nasdaq table:", nasdaq_items.fetchone())
     print("Number of items in Nvidia table:", nvidia_items.fetchone())   
     print("Number of items in Bitcoin table:", bitcoin_items.fetchone())
