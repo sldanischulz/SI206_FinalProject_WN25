@@ -9,16 +9,16 @@
 import http.client
 import re
 import os
-import requests
+#import requests
 import json
 import sqlite3
 #from truthbrush.api import Api
 from datetime import datetime, timezone, timedelta
 import json
-from polygon import RESTClient
+#from polygon import RESTClient
 from datetime import datetime
-import jwt
-from cryptography.hazmat.primitives import serialization
+#import jwt
+#from cryptography.hazmat.primitives import serialization
 import time
 import secrets
 
@@ -285,19 +285,15 @@ def add_posts_to_table(data, cur, conn):
 def set_up_market_coin_table(cur, conn):
     
     cur.execute(
-        "CREATE TABLE IF NOT EXISTS Market (id INTEGER PRIMARY KEY, start TEXT, open INTEGER, close INTEGER, high INTEGER, low INTEGER, timestamp INTEGER)"
+        "CREATE TABLE IF NOT EXISTS Bitcoin (id INTEGER PRIMARY KEY, timestamp TEXT, date TEXT, open INTEGER, close INTEGER, high INTEGER, low INTEGER)"
     )
 
     cur.execute(
-        "CREATE TABLE IF NOT EXISTS Cripto (id INTEGER PRIMARY KEY, timestamp TEXT, open INTEGER, close INTEGER, high INTEGER, low INTEGER)"
+        "CREATE TABLE IF NOT EXISTS Nvidia (id INTEGER PRIMARY KEY, timestamp TEXT, date TEXT, open INTEGER, close INTEGER, high INTEGER, low INTEGER)"
     )
 
     cur.execute(
-        "CREATE TABLE IF NOT EXISTS Nvda (id INTEGER PRIMARY KEY, timestamp TEXT, open INTEGER, close INTEGER, high INTEGER, low INTEGER)"
-    )
-
-    cur.execute(
-        "CREATE TABLE IF NOT EXISTS Stock (id INTEGER PRIMARY KEY, timestamp TEXT, open INTEGER, close INTEGER, high INTEGER, low INTEGER)"
+        "CREATE TABLE IF NOT EXISTS Nasdaq (id INTEGER PRIMARY KEY, timestamp TEXT, date TEXT, open INTEGER, close INTEGER, high INTEGER, low INTEGER)"
     )
 
     conn.commit()
@@ -330,9 +326,14 @@ def add_criptodata_to_table(coin, cur, conn, counter):
     Data = List of dictionaries with market data  
     '''
     for i in range(len(coin['candles'])):
+        timestamp_ms = int(coin['candles'][i]['start'])
+        timestamp_sec = timestamp_ms 
+        readable_date = datetime.fromtimestamp(timestamp_sec, tz=timezone.utc)
+
         cur.execute(
-            "INSERT OR IGNORE INTO Cripto (id, timestamp, open, close, high, low) VALUES (?,?,?,?,?,?)", (counter,
+            "INSERT OR IGNORE INTO Bitcoin (id, timestamp, date, open, close, high, low) VALUES (?,?,?,?,?,?,?)", (counter,
                                                                                                           coin['candles'][i]['start'],
+                                                                                                          str(readable_date),
                                                                                                           coin['candles'][i]['open'],
                                                                                                           coin['candles'][i]['close'],
                                                                                                           coin['candles'][i]['high'],
@@ -349,13 +350,18 @@ def add_nvdadata_to_table(coin, cur, conn, counter):
     Data = List of dictionaries with market data  
     '''
     for i in range(len(coin['results'])):
+        timestamp_ms = int(coin['results'][i]['t'])
+        timestamp_sec = timestamp_ms / 1000
+        readable_date = datetime.fromtimestamp(timestamp_sec, tz=timezone.utc)
+
         cur.execute(
-            "INSERT OR IGNORE INTO Nvda (id, timestamp, open, close, high, low) VALUES (?,?,?,?,?,?)", (counter,
-                                                                                                          coin['results'][i]['t'],
-                                                                                                          coin['results'][i]['o'],
-                                                                                                          coin['results'][i]['c'],
-                                                                                                          coin['results'][i]['h'],
-                                                                                                          coin['results'][i]['l'])                                                                                                        
+            "INSERT OR IGNORE INTO Nvidia (id, timestamp, date, open, close, high, low) VALUES (?,?,?,?,?,?,?)", (counter,
+                                                                                                            coin['results'][i]['t'],
+                                                                                                            str(readable_date),
+                                                                                                            coin['results'][i]['o'],
+                                                                                                            coin['results'][i]['c'],
+                                                                                                            coin['results'][i]['h'],
+                                                                                                            coin['results'][i]['l'])                                                                                                        
         )
         counter +=1
 
@@ -368,9 +374,13 @@ def add_stockdata_to_table(coin, cur, conn, counter):
     Data = List of dictionaries with market data  
     '''
     for i in coin.values():
+        timestamp_ms = int(i['timestamp'])
+        timestamp_sec = timestamp_ms / 1000
+        readable_date = datetime.fromtimestamp(timestamp_sec, tz=timezone.utc)
         cur.execute(
-            "INSERT OR IGNORE INTO Stock (id, timestamp, open, close, high, low) VALUES (?,?,?,?,?,?)", (counter,
+            "INSERT OR IGNORE INTO Nasdaq (id, timestamp, date, open, close, high, low) VALUES (?,?,?,?,?,?,?)", (counter,
                                                                                                       i['timestamp'],
+                                                                                                      str(readable_date),
                                                                                                       i['open'],
                                                                                                       i['close'],
                                                                                                       i['high'],
@@ -382,11 +392,47 @@ def add_stockdata_to_table(coin, cur, conn, counter):
 
     return counter
 
+def menu_apis():
+    print("Welcome to our SI 206 Final Project!\n \n We hope you enjoy it!\n")
+    status = False
+    while status == False:
+        print("You have selected to pull data from APIs.")
+        inp = input("Select an API to pull data from:\n   [1] NASDAQ via Polygon\n   [2] Bitcoin via Coinbase\n   [3] NVIDIA via Finage\n ")
+        if inp == "1":
+            status = True
+            print("Selected: NASDAQ")
+            return 'NASDAQ'
+        elif inp == "2":
+            status = True
+            print("Selected: Bitcoin")
+            return 'Bitcoin'
+        elif inp == "3":
+            status = True
+            print("Selected: NVIDIA")
+            return 'NVIDIA'
+        else:
+            print("Invalid input. Please try again.")
+            continue
+    
+def menu_roundsofdata(api):
+    print("Let's collect some data!")
+    if api == "NASDAQ":
+        try:
+            print("You have selected to pull data from the NASDAQ API.")
+            year = input("Please enter the year you would like to begin pulling data from (YYYY): ")
+            month = input("Please enter the month you would like to pulling data from (MM): ")
+            day = input("Please enter the day you would like to pulling data from (DD): ")
+            return int(year), int(month), int(day)
+        except:
+            print("Invalid input. Please try again.")
+            return None
+
 def main():
+    database_name = "NEW3_final_project.db"
     print("HI IT RANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN")
     ######################################################################### SETUP
     # Set up database
-    cur, conn = set_up_database("NEW1_final_project.db") 
+    cur, conn = set_up_database(database_name) 
 
     # Creates tables POSTS and ENGAGEMENT
     # set_up_posts_tables(cur, conn)
