@@ -492,6 +492,9 @@ def main():
     # set_up_posts_tables(cur, conn)
     set_up_market_coin_table(cur, conn)
 
+    
+    ######################################################################### ADDING DATA TO TABLES
+
     if api == 'NASDAQ':
         data = get_json_content(ndq_json)
         add_stockdata_to_table(data, cur, conn)
@@ -505,6 +508,9 @@ def main():
         add_nvdadata_to_table(data, cur, conn)
 
     print("Done adding data to the database\n")
+
+    
+    ######################################################################### CLOSING NOTES AND COUNTING ITEMS IN TABLES
 
     nasdaq_items = cur.execute(
         "SELECT COUNT(*) FROM Nasdaq"
