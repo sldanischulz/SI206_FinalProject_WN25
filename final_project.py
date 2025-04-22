@@ -413,21 +413,37 @@ def menu_apis():
             print("Invalid input. Please try again.")
             continue
     
-def get_dates(api):
+def get_dates():
     print("Let's collect some data!")
-    if api == "NASDAQ":
+
+    status = False
+    while status == False:
         try:
-            print("You have selected to pull data from the NASDAQ API.")
-            s_year = input("Please enter the year you would like to begin pulling data from (YYYY): ")
-            s_month = input("Please enter the month you would like to begin pulling data from (MM): ")
-            s_day = input("Please enter the day you would like to begin pulling data from (DD): ")
-            e_year = input("Please enter the year you would like to end pulling data from (YYYY): ")
-            e_month = input("Please enter the month you would like to end pulling data from (MM): ")
-            eday = input("Please enter the day you would like to end pulling data from (DD): ")
-            star_date = (int(s_year), int(s_month), int(s_day))
-            end_date = (int(e_year), int(e_month), int(eday))
-            
-            return star_date, end_date
+            offset = timezone(timedelta(hours=2))
+
+            s_year = int(input("Please enter the year you would like to begin pulling data from (YYYY): "))
+            s_month = int(input("Please enter the month you would like to begin pulling data from (MM): "))
+            s_day = int(input("Please enter the day you would like to begin pulling data from (DD): "))
+            e_year = int(input("Please enter the year you would like to end pulling data from (YYYY): "))
+            e_month = int(input("Please enter the month you would like to end pulling data from (MM): "))
+            e_day = int(input("Please enter the day you would like to end pulling data from (DD): "))
+
+            start_date = datetime(s_year, s_month, s_day, tzinfo=offset)
+            end_date = datetime(e_year, e_month, e_day, tzinfo=offset)
+            now = datetime.now(tz=offset)
+
+            if start_date > end_date:
+                print("Start date must be before end date.")
+                continue
+            elif end_date > now:
+                print("End date must be before today.")
+                continue
+            elif datetime(e_year, e_month, e_day, tzinfo=offset) - datetime(s_year, s_month, s_day, tzinfo=offset) > timedelta(days=25):
+                end_date = datetime(s_year, s_month, s_day, tzinfo=offset) + timedelta(days=25)
+                print("Date interval set to 25 days.")
+                status = True
+
+            return start_date, end_date
         
         except:
             print("Invalid input. Please try again.")
@@ -438,27 +454,40 @@ def get_dates(api):
 def main():
 
     
-    ######################################################################### SETUP
-    # Set up database
+    ######################################################################### COLLECTING DATA
+    api = menu_apis()
+    start_date, end_date = get_dates()
+    #print("START", start_date, "END", end_date)
+    if api == 'NASDAQ':
+        p = Polygon()
+        p.get_stonks(str(start_date)[0:10], str(end_date)[0:10])
+        
+    elif api == 'Bitcoin':
+        coin_candles("BTC-USD", start_date, end_date)
+    
+    elif api == 'NVIDIA':
+        get_stonks_finage("NVDA", str(datetime(2024, 11, 1, tzinfo=offset))[0:10], str(datetime(2024, 11, 26, tzinfo=offset))[0:10])
+
+    print("\nData has been collected.\nNow adding it into the database.\n")
+    
+    ######################################################################### SETTING UP DATABASE
     database_name = "NEW3_final_project.db"
     cur, conn = set_up_database(database_name) 
 
-    # Creates tables POSTS and ENGAGEMENT
+    ## Creates tables POSTS and ENGAGEMENT
     # set_up_posts_tables(cur, conn)
     set_up_market_coin_table(cur, conn)
 
-    api = menu_apis()
-    year, month, day = get_start_date(api)
 
-    # Set up start date
-    offset = timezone(timedelta(hours=2))
-    start_date = datetime(year, month, day, tzinfo=timezone.utc)
-    end_date = start_date + timedelta(days=25)
+    # # Set up start date
+    # offset = timezone(timedelta(hours=2))
+    # start_date = datetime(year, month, day, tzinfo=timezone.utc)
+    # end_date = start_date + timedelta(days=25)
 
-    # Set Start and End Dates
-    offset = timezone(timedelta(hours=2))
-    dt_start = datetime(2025, 3, 30, tzinfo=offset)
-    dt_end = datetime(2025, 4, 16, tzinfo=offset)
+    # # Set Start and End Dates
+    # offset = timezone(timedelta(hours=2))
+    # dt_start = datetime(2025, 3, 30, tzinfo=offset)
+    # dt_end = datetime(2025, 4, 16, tzinfo=offset)
 
     ######################################################################### Calling API Calls
     # Calculate the range between two datetime objects
