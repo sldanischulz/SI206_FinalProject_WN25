@@ -396,7 +396,6 @@ def add_stockdata_to_table(coin, cur, conn):
                                                                                                       i['high'],
                                                                                                       i['low'])                                                                                                        
         )
-        counter += 1
         
     conn.commit()
 
