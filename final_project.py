@@ -326,8 +326,7 @@ def add_criptodata_to_table(coin, cur, conn, counter):
     Data = List of dictionaries with market data  
     '''
     for i in range(len(coin['candles'])):
-        timestamp_ms = int(coin['candles'][i]['start'])
-        timestamp_sec = timestamp_ms 
+        timestamp_sec = int(coin['candles'][i]['start'])
         readable_date = datetime.fromtimestamp(timestamp_sec, tz=timezone.utc)
 
         cur.execute(
@@ -414,29 +413,47 @@ def menu_apis():
             print("Invalid input. Please try again.")
             continue
     
-def menu_roundsofdata(api):
+def get_dates(api):
     print("Let's collect some data!")
     if api == "NASDAQ":
         try:
             print("You have selected to pull data from the NASDAQ API.")
-            year = input("Please enter the year you would like to begin pulling data from (YYYY): ")
-            month = input("Please enter the month you would like to pulling data from (MM): ")
-            day = input("Please enter the day you would like to pulling data from (DD): ")
-            return int(year), int(month), int(day)
+            s_year = input("Please enter the year you would like to begin pulling data from (YYYY): ")
+            s_month = input("Please enter the month you would like to begin pulling data from (MM): ")
+            s_day = input("Please enter the day you would like to begin pulling data from (DD): ")
+            e_year = input("Please enter the year you would like to end pulling data from (YYYY): ")
+            e_month = input("Please enter the month you would like to end pulling data from (MM): ")
+            eday = input("Please enter the day you would like to end pulling data from (DD): ")
+            star_date = (int(s_year), int(s_month), int(s_day))
+            end_date = (int(e_year), int(e_month), int(eday))
+            
+            return star_date, end_date
+        
         except:
             print("Invalid input. Please try again.")
             return None
 
+
+
 def main():
-    database_name = "NEW3_final_project.db"
-    print("HI IT RANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN")
+
+    
     ######################################################################### SETUP
     # Set up database
+    database_name = "NEW3_final_project.db"
     cur, conn = set_up_database(database_name) 
 
     # Creates tables POSTS and ENGAGEMENT
     # set_up_posts_tables(cur, conn)
     set_up_market_coin_table(cur, conn)
+
+    api = menu_apis()
+    year, month, day = get_start_date(api)
+
+    # Set up start date
+    offset = timezone(timedelta(hours=2))
+    start_date = datetime(year, month, day, tzinfo=timezone.utc)
+    end_date = start_date + timedelta(days=25)
 
     # Set Start and End Dates
     offset = timezone(timedelta(hours=2))
