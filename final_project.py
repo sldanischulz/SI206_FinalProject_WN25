@@ -300,28 +300,6 @@ def set_up_market_coin_table(cur, conn):
 
     conn.commit()
 
-# def add_marketdata_to_table(market, cur, conn, m_counter):
-#     '''
-#     Data = List of dictionaries with market data  
-#     '''
-
-#     for key in market.keys():
-
-#         cur.execute(
-#             "INSERT OR IGNORE INTO Market (id, timestamp, open, close, high, low) VALUES (?,?,?,?,?,?)", (m_counter,
-#                                                                                                           market[key]['timestamp'],
-#                                                                                                           market[key]['open'],
-#                                                                                                           market[key]['close'],
-#                                                                                                           market[key]['high'],
-#                                                                                                           market[key]['low'])                                                                                                        
-#         )
-
-#         m_counter += 1
-
-#     conn.commit()
-
-#     return m_counter
-
 
 def add_criptodata_to_table(coin, cur, conn):
     '''
@@ -343,11 +321,9 @@ def add_criptodata_to_table(coin, cur, conn):
                                                                                                           coin['candles'][i]['high'],
                                                                                                           coin['candles'][i]['low'])                                                                                                        
         )
-        counter += 1
-        
+
     conn.commit()
 
-    return counter
 
 def add_nvdadata_to_table(coin, cur, conn):
     '''
@@ -370,11 +346,7 @@ def add_nvdadata_to_table(coin, cur, conn):
                                                                                                             coin['results'][i]['h'],
                                                                                                             coin['results'][i]['l'])                                                                                                        
         )
-        counter +=1
-
     conn.commit()
-
-    return counter
 
 def add_stockdata_to_table(coin, cur, conn):
     '''
@@ -396,10 +368,9 @@ def add_stockdata_to_table(coin, cur, conn):
                                                                                                       i['high'],
                                                                                                       i['low'])                                                                                                        
         )
-        
+     
     conn.commit()
 
-    return
 
 def menu_apis():
     print("Welcome to our SI 206 Final Project!\n \n We hope you enjoy it!\n")
@@ -512,20 +483,20 @@ def main():
     ######################################################################### CLOSING NOTES AND COUNTING ITEMS IN TABLES
 
     nasdaq_items = cur.execute(
-        "SELECT COUNT(*) FROM Nasdaq"
+        "SELECT COUNT(id) FROM Nasdaq"
         )
     
     nvidia_items = cur.execute(
-        "SELECT COUNT(*) FROM Nvidia"
+        "SELECT COUNT(id) FROM Nvidia"
         )
     
     bitcoin_items = cur.execute(    
-        "SELECT COUNT(*) FROM Bitcoin"
+        "SELECT COUNT(id) FROM Bitcoin"
         )
     
-    print("Number of items in Nasdaq table:", nasdaq_items.fetchone()[0])
-    print("Number of items in Nvidia table:", nvidia_items.fetchone()[0])   
-    print("Number of items in Bitcoin table:", bitcoin_items.fetchone()[0])
+    print("Number of items in Nasdaq table:", nasdaq_items.fetchone())
+    print("Number of items in Nvidia table:", nvidia_items.fetchone())   
+    print("Number of items in Bitcoin table:", bitcoin_items.fetchone())
 
     # # Set up start date
     # offset = timezone(timedelta(hours=2))
