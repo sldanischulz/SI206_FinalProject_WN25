@@ -399,7 +399,7 @@ def add_stockdata_to_table(coin, cur, conn):
         
     conn.commit()
 
-    return counter
+    return
 
 def menu_apis():
     print("Welcome to our SI 206 Final Project!\n \n We hope you enjoy it!\n")
