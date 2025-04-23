@@ -1,4 +1,6 @@
-This file contains the average of the 'close' values for Bitcoin, Nasdaq, and Nvidia per day. The averages are calculated by summing the closing values reported on the same date and dividing by the total number of tables providing data for that date. When a table lacks a 'close' value for a specific date, it adds 0 to the total.Daily Average Close Prices
+This file contains the average of the 'close' values for Bitcoin, Nasdaq, and Nvidia per day. The averages are calculated by
+summing the closing values reported on the same date and dividing by the total number of tables providing data for that date.
+When a table lacks a 'close' value for a specific date, it adds 0 to the total.Daily Average Close Prices
 ==========================
 Date, Average Close
 None, 92725.06

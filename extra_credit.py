@@ -2,6 +2,11 @@ import json
 import os
 import sqlite3
 from datetime import datetime, timezone, timedelta
+import sqlite3
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 def set_up_database(db_name):
 
@@ -101,6 +106,54 @@ def add_posts_to_table(data, cur, conn):
             "INSERT OR IGNORE INTO Posts (post_id, timestamp, post_content, engagement, day_key) VALUES (?, ?, ?, ?, ?)",
             (post_id, timestamp, post_content, engagement, day_key)
         )
+
+def calculate_post_market_correlation(db_path, show_plot=Tru):
+    """
+    Calculates the correlation between the number of posts per day and 
+    the Nasdaq closing value. Optionally plots the relationship.
+
+    Parameters:
+        db_path (str): Path to the SQLite database.
+        show_plot (bool): Whether to display a scatter plot.
+
+    Returns:
+        float: Pearson correlation coefficient between post count and Nasdaq close.
+    """
+
+    # Connect to the database
+    conn = sqlite3.connect(db_path)
+
+    # Join daily post counts with Nasdaq closing values by date
+    query = """
+    SELECT 
+        p.date AS date,
+        p.count AS post_count,
+        n.close AS nasdaq_close
+    FROM PostPerDay p
+    JOIN Nasdaq n ON p.date = n.date
+    """
+
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+
+    # Drop any rows with missing values
+    df.dropna(inplace=True)
+
+    # Calculate the Pearson correlation
+    correlation = df['post_count'].corr(df['nasdaq_close'])
+
+    # Optional plot
+    if show_plot:
+        sns.scatterplot(data=df, x='post_count', y='nasdaq_close')
+        plt.title("Posts per Day vs Nasdaq Closing Price")
+        plt.xlabel("Number of Posts")
+        plt.ylabel("Nasdaq Close")
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+    return correlation
+
 
     conn.commit()
 

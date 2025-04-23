@@ -7,9 +7,7 @@
 #   - Danielle Schulz (dfaria@umich.edu - UMID 63218489)
 
 import http.client
-import re
 import os
-import requests
 import sqlite3
 from truthbrush.api import Api
 from datetime import datetime, timezone, timedelta
