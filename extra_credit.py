@@ -3,9 +3,7 @@ import os
 import sqlite3
 from datetime import datetime, timezone, timedelta
 import sqlite3
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+
 
 
 def set_up_database(db_name):
