@@ -16,7 +16,9 @@ import secrets
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# This script visualizes data from a SQLite database containing Bitcoin, Nasdaq, and Nvidia stock prices.
 
+# This function generates individual plots for each selected table
 def plot_individual_table(df, table_name):
     # Sort DataFrame by timestamp in ascending order
     df = df.sort_index()
@@ -32,7 +34,9 @@ def plot_individual_table(df, table_name):
     plt.tight_layout()
     plt.savefig(f'{table_name}_close_plot.png')
     plt.show()
-    
+
+# This function generates a comparative plot for the daily percent change of close prices across multiple tables.
+# It retrieves the data from each table, calculates the daily percent change, and plots them on the same graph.    
 def plot_comparative_tables(connection, tables):
     plt.figure(figsize=(14, 8))
     
@@ -41,7 +45,6 @@ def plot_comparative_tables(connection, tables):
         query = f"SELECT * FROM {table_name}"
         df = pd.read_sql_query(query, connection)
         
-        # Determine the timestamp unit based on the table name
         if table_name == 'Bitcoin':
             # Bitcoin timestamps are in seconds
             df['timestamp'] = pd.to_datetime(df['timestamp'].astype('int64'), unit='s')
@@ -52,7 +55,6 @@ def plot_comparative_tables(connection, tables):
         # Set timestamp as the index
         df.set_index('timestamp', inplace=True)
         
-        # Sort DataFrame by timestamp in ascending order
         df = df.sort_index()
         df['daily_percent_change'] = df['close'].pct_change() * 100
         plt.plot(df.index, df['daily_percent_change'], label=f'{table_name} - % Daily Change', c=colors[i])
@@ -66,12 +68,15 @@ def plot_comparative_tables(connection, tables):
     plt.savefig('comparative_daily_percent_change_plot.png')
     plt.show()
 
+# This function retrieves data from the specified tables in the SQLite database, processes it, and generates plots.
+# It retrieves the data from each table, processes the timestamps, and generates individual plots for each table.
+# It also generates a comparative plot for the daily percent change of close prices across all tables.
+# It then saves the plots as PNG files and displays them.
 def plot_tables(connection, tables):
     for table_name in tables:
         query = f"SELECT * FROM {table_name}"
         df = pd.read_sql_query(query, connection)
         
-        # Determine the timestamp unit based on the table name
         if table_name == 'Bitcoin':
             # Bitcoin timestamps are in seconds
             df['timestamp'] = pd.to_datetime(df['timestamp'].astype('int64'), unit='s')
@@ -87,9 +92,10 @@ def plot_tables(connection, tables):
     # After plotting individual tables, plot them together for comparative analysis
     plot_comparative_tables(connection, tables)
 
-
+# This function calculates the daily average close prices for Bitcoin, Nasdaq, and Nvidia.
+# It retrieves the data from the database, joins the tables on the date, and calculates the average close price for each date.
 def calculate_daily_averages(connection):
-    # Explicitly using the date from the Nvidia table to avoid ambiguity
+    # The date data from the Nvidia table is used for joining to avoid ambiguity
     query = '''
     SELECT Nvidia.date AS date, 
            AVG(COALESCE(Bitcoin.close, 0) + COALESCE(Nasdaq.close, 0) + COALESCE(Nvidia.close, 0)) AS avg_close
@@ -102,6 +108,9 @@ def calculate_daily_averages(connection):
     
     return pd.read_sql_query(query, connection)
 
+
+# This function writes the daily average close prices to a text file.
+# It includes a header explaining the contents of the file and formats the data for readability.
 def write_averages_to_file(df, filename):
     with open(filename, 'w') as f:
         f.write("This file contains the average of the 'close' values for Bitcoin, Nasdaq, and Nvidia per day. "
@@ -115,8 +124,9 @@ def write_averages_to_file(df, filename):
             f.write(f"{row['date']}, {row['avg_close']:.2f}\n")
         f.write("\n")
 
+# This function visualizes the daily average close prices using a line plot.
+# It ensures the date column is in datetime format, handles missing values, and plots the data.
 def visualize_averages(df):
-    # Ensure the date column is in datetime format and handle missing values
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
     
     # Drop rows with missing dates if any
@@ -133,8 +143,9 @@ def visualize_averages(df):
     plt.show()
 
 
+
 def main():
-    # Path to your .db file
+    # Path to a .db file
     path = os.path.dirname(os.path.abspath(__file__))
     
     database_file_path = path

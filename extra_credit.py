@@ -107,61 +107,26 @@ def add_posts_to_table(data, cur, conn):
             (post_id, timestamp, post_content, engagement, day_key)
         )
 
-def calculate_post_market_correlation(db_path, show_plot=Tru):
+
+def save_table_to_csv(cur, conn, table_name, csv_filename):
     """
-    Calculates the correlation between the number of posts per day and 
-    the Nasdaq closing value. Optionally plots the relationship.
-
-    Parameters:
-        db_path (str): Path to the SQLite database.
-        show_plot (bool): Whether to display a scatter plot.
-
-    Returns:
-        float: Pearson correlation coefficient between post count and Nasdaq close.
+    Saves a table from the SQLite database to a CSV file.
     """
-
-    # Connect to the database
-    conn = sqlite3.connect(db_path)
-
-    # Join daily post counts with Nasdaq closing values by date
-    query = """
-    SELECT 
-        p.date AS date,
-        p.count AS post_count,
-        n.close AS nasdaq_close
-    FROM PostPerDay p
-    JOIN Nasdaq n ON p.date = n.date
-    """
-
-    df = pd.read_sql_query(query, conn)
-    conn.close()
-
-    # Drop any rows with missing values
-    df.dropna(inplace=True)
-
-    # Calculate the Pearson correlation
-    correlation = df['post_count'].corr(df['nasdaq_close'])
-
-    # Optional plot
-    if show_plot:
-        sns.scatterplot(data=df, x='post_count', y='nasdaq_close')
-        plt.title("Posts per Day vs Nasdaq Closing Price")
-        plt.xlabel("Number of Posts")
-        plt.ylabel("Nasdaq Close")
-        plt.grid(True)
-        plt.tight_layout()
-        plt.show()
-
-    return correlation
-
-
+    df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
+    # Save to CSV
+    df.to_csv(csv_filename, index=False)
+    
     conn.commit()
+
 
 def main():
     cur, conn = set_up_database("truthbrush_postsCOUNT.db")
     data = get_json_content("REAL_statuses.json")
     set_up_posts_tables(cur, conn)
     add_posts_to_table(data, cur, conn)
+    save_table_to_csv(cur, conn, "PostPerDay", "PostPerDay.csv")
+    #print(calculate_post_market_correlation("truthbrush_postsCOUNT.db", "final_project.db", show_plot=True))
+    
 
 
 if __name__ == '__main__':
