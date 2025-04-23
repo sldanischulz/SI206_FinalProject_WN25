@@ -464,7 +464,7 @@ def main():
     api = menu_apis()
     
     ######################################################################### SETTING UP DATABASE
-    database_name = "NEW11_final_project.db"
+    database_name = "final_project.db"
     cur, conn = set_up_database(database_name) 
 
     ######################################################################### SETTING UP TABLES
@@ -528,8 +528,6 @@ def main():
     print("Number of items in Bitcoin table:", bitcoin_count)
 
     # pass
-
-
 
 
 if __name__ == '__main__':
