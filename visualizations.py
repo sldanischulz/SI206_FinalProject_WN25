@@ -139,7 +139,7 @@ def main():
     
     database_file_path = path
 
-    connection = sqlite3.connect(database_file_path)
+    connection = sqlite3.connect(database_file_path + "/" + "final_project.db")
 
     # List of tables to visualize
     tables = ['Bitcoin', 'Nasdaq', 'Nvidia']
